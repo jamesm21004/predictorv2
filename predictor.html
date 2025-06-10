@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Football Predictor</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4ff;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav {
+      background-color: #223a78;
+      padding: 15px 30px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    nav h2 {
+      display: inline;
+      color: white;
+      margin: 0;
+      margin-right: 30px;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-right: 20px;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    form {
+      background: white;
+      padding: 20px;
+      max-width: 700px;
+      margin: 40px auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="text"], input[type="number"] {
+      padding: 8px;
+      margin: 5px 0 15px 0;
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .match-row {
+      display: grid;
+      grid-template-columns: 1.5fr 80px 40px 80px 1.5fr;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .match-row span {
+      text-align: center;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #4a6ee0;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #3a59b8;
+    }
+
+    @media (max-width: 600px) {
+      .match-row {
+        grid-template-columns: 1fr 50px 20px 50px 1fr;
+        font-size: 14px;
+      }
+
+      nav h2 {
+        display: block;
+        margin-bottom: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <h2>⚽ Pub Predictor</h2>
+    <a href="predictor.html">Submit Predictions</a>
+    <a href="predictions.html">This Week's Picks</a>
+    <a href="table.html">This Week's Table</a>
+    <a href="season.html">25/26 Table</a>
+  </nav>
+
+  <h1>Submit Your Predictions</h1>
+
+  <form id="predictForm">
+    <label for="name">Your Name:</label>
+    <select id="name" required style="padding: 8px; width: 100%; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;">
+      <option value="" disabled selected>Select your name</option>
+    </select>
+
+    <div id="matches"></div>
+
+    <button type="submit">Submit Predictions</button>
+  </form>
+
+  <script>
+    const matchContainer = document.getElementById('matches');
+    const nameSelect = document.getElementById('name');
+    let currentFixtures = [];
+
+    const allNames = [
+      'James', 'Ian', 'Chris', 'Ken', 'Peter H',
+      'Peter M', 'Sean', 'Barry', 'Hilton', 'Joe'
+    ];
+
+    // Step 1: Load fixtures
+    fetch('/api/fixtures')
+      .then(res => res.json())
+      .then(data => {
+        currentFixtures = data;
+        data.forEach((match, index) => {
+          const row = document.createElement('div');
+          row.className = 'match-row';
+          row.innerHTML = `
+            <span>${match.homeTeam}</span>
+            <input type="number" min="0" name="homeScore${index}" required />
+            <span>vs</span>
+            <input type="number" min="0" name="awayScore${index}" required />
+            <span>${match.awayTeam}</span>
+          `;
+          matchContainer.appendChild(row);
+        });
+      })
+      .catch(err => {
+        matchContainer.innerHTML = "<p style='color:red;'>Unable to load fixtures.</p>";
+        console.error(err);
+      });
+
+    // Step 2: Remove already-submitted names
+    fetch('/api/predictions')
+      .then(res => res.json())
+      .then(predictions => {
+        const submittedNames = new Set(predictions.map(p => p.name));
+        const availableNames = allNames.filter(name => !submittedNames.has(name));
+
+        if (availableNames.length === 0) {
+          const option = document.createElement('option');
+          option.text = 'All predictions submitted';
+          option.disabled = true;
+          nameSelect.appendChild(option);
+        } else {
+          availableNames.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            nameSelect.appendChild(option);
+          });
+        }
+      })
+      .catch(err => {
+        console.error('Error loading submitted predictions:', err);
+      });
+
+    // Step 3: Handle form submit
+    document.getElementById('predictForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = nameSelect.value.trim();
+      const matches = [];
+
+      currentFixtures.forEach((match, i) => {
+        const homeScore = parseInt(document.querySelector(`[name=homeScore${i}]`).value);
+        const awayScore = parseInt(document.querySelector(`[name=awayScore${i}]`).value);
+        matches.push({
+          homeTeam: match.homeTeam,
+          awayTeam: match.awayTeam,
+          homeScore,
+          awayScore
+        });
+      });
+
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, matches })
+      });
+
+      if (response.ok) {
+        alert('Prediction submitted!');
+        window.location.reload(); // refresh to remove name from dropdown
+      } else {
+        alert('There was a problem submitting your prediction.');
+      }
+    });
+  </script>
+</body>
+</html>
+

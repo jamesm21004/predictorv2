@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>This Week's Predictions</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4ff;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Navigation Bar */
+    nav {
+      background-color: #223a78;
+      padding: 15px 30px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    nav h2 {
+      display: inline;
+      color: white;
+      margin: 0;
+      margin-right: 30px;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-right: 20px;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .prediction-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin: 20px auto;
+      padding: 20px;
+      max-width: 700px;
+    }
+
+    .prediction-card h3 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    @media (max-width: 600px) {
+      nav h2 {
+        display: block;
+        margin-bottom: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav>
+    <h2>⚽ Pub Predictor</h2>
+    <a href="predictor.html">Submit Predictions</a>
+    <a href="predictions.html">This Week's Picks</a>
+    <a href="table.html">This Week's Table</a>
+    <a href="season.html">25/26 Table</a>
+  </nav>
+
+  <h1>This Week's Predictions</h1>
+  <div id="predictionsContainer"></div>
+
+  <script>
+    fetch('/api/predictions')
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById('predictionsContainer');
+
+        if (data.length === 0) {
+          container.innerHTML = "<p>No predictions yet.</p>";
+          return;
+        }
+
+        data.forEach(entry => {
+          const card = document.createElement('div');
+          card.className = 'prediction-card';
+
+          const listItems = entry.matches.map(match => `
+            <li>${match.homeTeam} ${match.homeScore} - ${match.awayScore} ${match.awayTeam}</li>
+          `).join('');
+
+          card.innerHTML = `
+            <h3>${entry.name}</h3>
+            <ul>${listItems}</ul>
+          `;
+
+          container.appendChild(card);
+        });
+      })
+      .catch(err => {
+        document.getElementById('predictionsContainer').innerHTML = "<p style='color:red;'>Failed to load predictions.</p>";
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
+
