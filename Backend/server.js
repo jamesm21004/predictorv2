@@ -204,9 +204,36 @@ app.get('/season', (req, res) => {
   })).sort((a, b) => b.points - a.points);
 
   res.json(leaderboard);
+
+// ✅ GET /available-names — returns names that haven't submitted predictions
+app.get('/available-names', (req, res) => {
+  const namesFile = './names.json';
+
+  if (!fs.existsSync(namesFile)) {
+    return res.status(500).json({ error: 'names.json not found' });
+  }
+
+  const allNames = JSON.parse(fs.readFileSync(namesFile, 'utf8'));
+  const predictions = fs.existsSync(predictionsFile)
+    ? JSON.parse(fs.readFileSync(predictionsFile))
+    : [];
+
+  const usedNames = new Set(predictions.map(p => p.name));
+  const availableNames = allNames.filter(name => !usedNames.has(name));
+
+  res.json(availableNames);
+});
+
+
+
+
+
+
 });
 
 // ✅ Start server on 0.0.0.0 to allow external access (important for NGINX or direct IP)
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running and listening on http://0.0.0.0:${PORT}`);
 });
+
+
