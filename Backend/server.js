@@ -207,7 +207,9 @@ app.get('/season', (req, res) => {
 
 // ✅ GET /available-names — returns names that haven't submitted predictions
 app.get('/available-names', (req, res) => {
-  const namesFile = './Backend/names.json';
+  const path = require('path');
+const namesFile = path.join(__dirname, 'Backend', 'names.json');
+
 
   if (!fs.existsSync(namesFile)) {
     return res.status(500).json({ error: 'names.json not found' });
