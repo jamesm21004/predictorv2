@@ -12,7 +12,6 @@
       padding: 0;
     }
 
-    /* Navigation Bar */
     nav {
       background-color: #223a78;
       padding: 15px 30px;
@@ -67,14 +66,15 @@
       margin: 5px 0;
     }
 
+    /* ✅ Stop zooming on mobile by ensuring input font-size is >= 16px */
+    input[type="number"] {
+      font-size: 16px !important;
+    }
+
     @media (max-width: 600px) {
       nav h2 {
         display: block;
         margin-bottom: 10px;
-      }
-
-      input[type="number"] {
-        font-size: 16px;
       }
     }
   </style>
