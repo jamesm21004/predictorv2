@@ -56,13 +56,14 @@
       font-weight: bold;
     }
 
-    input[type="text"], input[type="number"] {
+    input[type="text"], input[type="number"], select {
       padding: 8px;
       margin: 5px 0 15px 0;
       width: 100%;
       box-sizing: border-box;
       border: 1px solid #ccc;
       border-radius: 4px;
+      font-size: 16px !important; /* ✅ Prevent mobile zoom */
     }
 
     .match-row {
@@ -119,7 +120,7 @@
 
   <form id="predictForm">
     <label for="name">Your Name:</label>
-    <select id="name" required style="padding: 8px; width: 100%; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;">
+    <select id="name" required>
       <option value="" disabled selected>Select your name</option>
     </select>
 
@@ -219,4 +220,3 @@
   </script>
 </body>
 </html>
-
