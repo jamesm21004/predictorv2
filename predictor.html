@@ -217,6 +217,15 @@
         alert('There was a problem submitting your prediction.');
       }
     });
+
+    // Option 2: Blur number inputs after short delay to prevent zoom
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('focus', () => {
+          setTimeout(() => input.blur(), 300);
+        });
+      });
+    });
   </script>
 </body>
 </html>
