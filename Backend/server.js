@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 const PORT = 3000;
 
@@ -49,7 +50,6 @@ app.post('/submit', (req, res) => {
     ? JSON.parse(fs.readFileSync(predictionsFile))
     : [];
 
-  // Prevent duplicate submissions
   if (current.some(p => p.name === name)) {
     return res.status(400).json({ error: 'You have already submitted predictions.' });
   }
@@ -69,7 +69,7 @@ app.get('/predictions', (req, res) => {
   }
 });
 
-// ✅ GET /submitted-names — for dropdown logic
+// GET /submitted-names
 app.get('/submitted-names', (req, res) => {
   if (!fs.existsSync(predictionsFile)) {
     return res.json([]);
@@ -206,10 +206,9 @@ app.get('/season', (req, res) => {
   res.json(leaderboard);
 });
 
-// ✅ GET /available-names — returns names that haven't submitted predictions
+// GET /available-names
 app.get('/available-names', (req, res) => {
-  const path = require('path');
-  const namesFile = path.join(__dirname, 'Backend', 'names.json');
+  const namesFile = path.join(__dirname, 'names.json');
 
   if (!fs.existsSync(namesFile)) {
     return res.status(500).json({ error: 'names.json not found' });
@@ -226,7 +225,7 @@ app.get('/available-names', (req, res) => {
   res.json(availableNames);
 });
 
-// ✅ Start server on 0.0.0.0 to allow external access (important for NGINX or direct IP)
+// Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running and listening on http://0.0.0.0:${PORT}`);
 });
