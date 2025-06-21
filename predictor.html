@@ -134,11 +134,6 @@
     const nameSelect = document.getElementById('name');
     let currentFixtures = [];
 
-    const allNames = [
-      'James', 'Ian', 'Chris', 'Ken', 'Peter H',
-      'Peter M', 'Sean', 'Barry', 'Hilton', 'Joe'
-    ];
-
     // Step 1: Load fixtures
     fetch('/api/fixtures')
       .then(res => res.json())
@@ -162,13 +157,10 @@
         console.error(err);
       });
 
-    // Step 2: Remove already-submitted names
-    fetch('/api/predictions')
+    // Step 2: Load available names from backend
+    fetch('/available-names')
       .then(res => res.json())
-      .then(predictions => {
-        const submittedNames = new Set(predictions.map(p => p.name));
-        const availableNames = allNames.filter(name => !submittedNames.has(name));
-
+      .then(availableNames => {
         if (availableNames.length === 0) {
           const option = document.createElement('option');
           option.text = 'All predictions submitted';
@@ -184,7 +176,7 @@
         }
       })
       .catch(err => {
-        console.error('Error loading submitted predictions:', err);
+        console.error('Error loading available names:', err);
       });
 
     // Step 3: Handle form submit
